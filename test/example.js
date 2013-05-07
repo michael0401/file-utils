@@ -36,7 +36,7 @@ test('urlUtils', function (t) {
 });
 
 test('fileUtils', function(t) {
-	t.plan(1);
+	t.plan(2);
 	
 	fileUtils.file().get('/example.js', function (response) {
 		t.equal(response.code, 200);
