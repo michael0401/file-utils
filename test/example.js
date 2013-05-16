@@ -36,14 +36,20 @@ test('urlUtils', function (t) {
 });
 
 test('fileUtils', function(t) {
-	t.plan(2);
+	t.plan(3);
 	
 	fileio.file().get('/example.js', function (err, response) {
-		t.equal(response.code, 200);
+		t.equal(response.code, 200, 'expect-success');
 	});
 	
+	fileio.file().get('/aafafdssf', function (err, response) {
+		t.equal(err.code, 'ENOENT', 'expect-fail');
+	});
+
 	fileio.site(_.urlParse('http://www.inciteadvisors.com'), '')
 		.url2json('', function (err, response) {
-			t.equal(response.code, 200);
+			t.equal(response.code, 200, 'site-expect-success');
 	});
+	
+
 });

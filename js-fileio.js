@@ -18,7 +18,7 @@
  * ========================================================== */
 
 /*jslint newcap: false, node: true, vars: true, white: true, nomen: true  */
-/*global _: true, $: true, XML: true */
+/*global _: true, $: true, UTIL: true */
 
 
 (function(global) {
@@ -263,7 +263,7 @@ save: before send fullcommit options
 
 		var Xml = function(Spec) {
 			var that = Spec || {}
-				, xotree = new XML.ObjTree();
+				, xotree = new UTIL.XML.ObjTree();
 				
 			var force_array = function(opts) {
 				if (_.isArray(opts)) {
@@ -360,13 +360,11 @@ save: before send fullcommit options
 			});
 		} else {
 			fs.readFile(root+f, 'ascii', function (err, data) {
-				if (handler && typeof handler === 'function') {
-					handler(err, {
-						'request': request,
-						'code': (err && err.code) || 200,
-						'data': data
-					});
-				}
+				handler(err, {
+					'request': request,
+					'code': (err && err.code) || 200,
+					'data': data
+				});
 			});			
 		}	
 	};
@@ -457,7 +455,7 @@ var parsed = _.urlParse(url).hasOwnProperty('hostname')
 	    }
 		exports.queue = fileio;
 	} else {
-		if (typeof global.UTIL !== 'undefined') {
+		if (typeof global.UTIL === 'undefined') {
 			global.UTIL = {};
 		}
 		global.UTIL.fileio = fileio;
