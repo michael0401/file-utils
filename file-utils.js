@@ -37,6 +37,16 @@
 		browser = true;
 		fileUtils = global.fileUtils = {};
 	}
+	
+	// return values from $.ajax
+	var  xhrStringValues = {
+		'success': function() { return null; },
+		'notmodified': function() { return null; },
+		'error': function(code) { return new Error('$ajax error ' + code); },
+		'timeout': function(code) { return new Error('$ajax timeout ' + code); }, 
+		'abort': function(code) { return new Error('$ajax abort ' + code); }, 
+		'parsererror': function(code) { return new Error('$ajax error ' + code); } 
+	};
 
 	var HTTP = function(server, user) {
 		var	Basic
@@ -111,8 +121,7 @@
 			};	
 
 		if (server && !_.has(server, 'file') && !(_.has(server, 'hostname') || _.has(server, 'host'))) {
-			console.trace();
-			throw 'error: missing hostname or port required for Ajax calls - ' + JSON.stringify(server);
+			throw new Error('error: missing hostname or port required for Ajax calls - ' + JSON.stringify(server));
 		}	
 
 		if (user && user.auth) {
@@ -120,17 +129,21 @@
 		}
 
 		var nodeGet = function (opts, callback) {
+			//console.log('nodeGet, user:', user);
+			//console.log('file-utils nodeGet', opts, typeof callback);
 			var stream = ''		// node.js ajax request function		
 				,req;
 			req = http.request(opts, function(res) {
+				//console.log('nodeGet rquest', typeof res);				
 				res.setEncoding('ascii');
 				res.on('data', function (chunk) {
 					stream = stream + chunk;
 				});
 				res.on('end', function() {
+					//console.log('nodeGet on end', res.statusCode);
 					// callback pattern
 					if (callback && typeof callback === 'function') {
-						callback(result({
+						callback(null, result({
 							request: _.omit(opts, 'agent', 'auth'),
 							code: res.statusCode,
 							header: res.headers,
@@ -152,13 +165,9 @@
 			req.setHeader('Content-type', 'application/json');													
 			req.setHeader('Accept', 'application/json');
 
-			req.on('error', function(e) {	
+			req.on('error', function(e) {
 				if (callback && typeof callback === 'function') {
-					callback(result({
-						'path': opts.path,
-						'code': e.code || e,
-						'error': e
-					}));
+					callback(e);
 				}
 			});
 
@@ -216,11 +225,11 @@ save: before send fullcommit options
 						xhr.setRequestHeader(index, item);						
 					});
 		        },
-		        complete: function(jqXHR) {
+		        complete: function(jqXHR, xhrString) {
 					//var resp = httpData(req, "json");
 					//console.log(jqXHR.responseText);
 					if (callback && typeof callback === 'function') {
-						callback(result({
+						callback(xhrStringValues[xhrString](jqXHR.status), result({
 							request: _.exclude(opts, 'agent', 'auth'),
 							method: opts.type,
 							code: jqXHR.status,
@@ -235,6 +244,7 @@ save: before send fullcommit options
 
 		// Purpose: manages parameters for differing ajax interfaces, such as node.js and jquery
 		var get = function(opts, callback) {
+			//console.log('file-utils get', opts, typeof callback);
 			// if the object is set with a 'file' path, instead of a 'host' or 'hostname', 
 			// then just read the file keeps the interface the same for http or file requests			
 			if ((server && server.file) || (server && server['server-root'])) {
@@ -291,16 +301,17 @@ save: before send fullcommit options
 			that.force_array = force_array;
 
 			var xml2json = function (xmlstr, fn) {
-				var tree = {};
+				var tree = {}
+				, err = null;
 
 				try {
 				    tree = xotree.parseXML(xmlstr);				
 				} catch (e) {
-					tree = { 'error (XML2JSON)': e };				
+					err = new Error(' [ XML2JSON ] -' + e);				
 				}
 
 	            if (fn && typeof fn === 'function') {
-	                fn(tree, JSON.stringify(tree), xmlstr);
+	                fn(err, tree, JSON.stringify(tree), xmlstr);
 	            }
 				return this;
 			};
@@ -308,15 +319,14 @@ save: before send fullcommit options
 
 			var url2json = function (url, func) {					
 				if (get && typeof get === 'function') {
-					get(url, function(result) {
-						if (result && result.code === 200) {
-							xml2json(result.data, function(tree, json, xml) {
-								_.extend(result, { 'tree': tree, 'json': json, 'xml': xml });
-								func(result);
-							});							
-						} else {
-							func(result);
+					get(url, function(err, result) {
+						if (err) {
+							return func ( new Error(err) );
 						}
+						xml2json(result.data, function(err, tree, json, xml) {
+							_.extend(result, { 'tree': tree, 'json': json, 'xml': xml });
+							func(null, result);
+						});						
 					});
 				}
 				return this;
@@ -362,25 +372,20 @@ save: before send fullcommit options
 				'url': root+f,
 				'type': 'GET',
 				'dataType': 'text',
-				'success': function(data, err) {
+				'complete': function(data, err) {
 					if (handler && typeof handler === 'function') {
-						handler({
+						handler(xhrStringValues[err](err), {
 							'request': request,
 							'code': err === 'success' ? 200 : err,
 							'data': data
 						});
 					}
-				},
-				'error': function() {
-					this.success.apply(this, arguments);
 				}
 			});
 		} else {
-			console.log('get:', root+f);
-//			fs.readFile('/Users/rranauro/Dev/file-utils/index.js', 'ascii', function (err, data) {
 			fs.readFile(root+f, 'ascii', function (err, data) {
 				if (handler && typeof handler === 'function') {
-					handler({
+					handler(err, {
 						'request': request,
 						'code': (err && err.code) || 200,
 						'data': data
@@ -440,7 +445,7 @@ save: before send fullcommit options
 		var read = function () {
 			readFile(sourceFile, function(err, data) {
 				if (err !== null) {
-					throw new Error('[ readCSV/read ] bad source file - ' + sourceFile);
+					throw new Error('[ readCSV/read ] bad source file - ' + err.message);
 				} else {
 					process(data);
 				}
@@ -465,7 +470,7 @@ var parsed = _.urlParse(url).hasOwnProperty('hostname')
 	var site = function (parsedURL, spec) {
 		var parsed = parsedURL.hasOwnProperty('hostname') 
 						? parsedURL
-						: urlUtils.urlParse('http://' + parsedURL);
+						: global.urlUtils.urlParse('http://' + parsedURL);
 		return HTTP(parsed).Xml(spec);
 	};
 	fileUtils.site = site;

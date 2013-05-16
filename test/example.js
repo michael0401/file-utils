@@ -38,12 +38,12 @@ test('urlUtils', function (t) {
 test('fileUtils', function(t) {
 	t.plan(2);
 	
-	fileUtils.file().get('/example.js', function (response) {
+	fileUtils.file().get('/example.js', function (err, response) {
 		t.equal(response.code, 200);
 	});
 	
 	fileUtils.site(urlUtils.urlParse('http://www.inciteadvisors.com'), '')
-		.url2json('', function (response) {
+		.url2json('', function (err, response) {
 			t.equal(response.code, 200);
 	});
 });
