@@ -4,8 +4,8 @@ var test = require('tape');
 /* 
 fileUtils.HTTP = Ajax;
 fileUtils.server = server;
-
 */
+
 var errors = 0
 , urlStr1 = 'http://user:pass@host.com:8080/p/a/t/h?query=string&query2=string2#hash'
 , reference = _.omit(require('url').parse(urlStr1), 'slashes');
@@ -17,20 +17,20 @@ test('urlUtils', function (t) {
 	// node.js has its own urlParser. We still need these when we run in the browser. So, 
 	// We use node as the reference. 
 	_.keys(reference).forEach(function(key) { 
-		errors += (reference[key] === urlUtils.urlParse(urlStr1)[key]) ? 0 : 1;
-		if (reference[key] !== urlUtils.urlParse(urlStr1)[key]) {
-			console.log(key, reference[key], urlUtils.urlParse(urlStr1)[key]);
+		errors += (reference[key] === _.urlParse(urlStr1)[key]) ? 0 : 1;
+		if (reference[key] !== _.urlParse(urlStr1)[key]) {
+			console.log(key, reference[key], _.urlParse(urlStr1)[key]);
 		}
 	});
-	t.equal(_.keys(reference).length, _.keys(urlUtils.urlParse(urlStr1)).length);
+	t.equal(_.keys(reference).length, _.keys(_.urlParse(urlStr1)).length);
 	t.equal(errors, 0);
 	
-	errors = urlUtils.urlFormat(reference) === reference.href ? 0 : 1;
-	t.equal(errors, 0, urlUtils.urlFormat(reference));
+	errors = _.urlFormat(reference) === reference.href ? 0 : 1;
+	t.equal(errors, 0, _.urlFormat(reference));
 	
-	errors = (urlUtils.formatQuery(urlUtils.parseQuery(reference.search))) === reference.search 
+	errors = (_.formatQuery(_.parseQuery(reference.search))) === reference.search 
 		? 0 
-		: urlUtils.formatQuery(urlUtils.parseQuery(reference.search));
+		: _.formatQuery(_.parseQuery(reference.search));
 	t.equal(errors, 0, errors);
 	
 });
@@ -38,11 +38,11 @@ test('urlUtils', function (t) {
 test('fileUtils', function(t) {
 	t.plan(2);
 	
-	fileUtils.file().get('/example.js', function (err, response) {
+	fileio.file().get('/example.js', function (err, response) {
 		t.equal(response.code, 200);
 	});
 	
-	fileUtils.site(urlUtils.urlParse('http://www.inciteadvisors.com'), '')
+	fileio.site(_.urlParse('http://www.inciteadvisors.com'), '')
 		.url2json('', function (err, response) {
 			t.equal(response.code, 200);
 	});
