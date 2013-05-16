@@ -1,6 +1,3 @@
-js-fileio
-========
-
 #js-fileio.js
 
 File-utils.js is a utility module which provide functions for operating with html file. It can be used both in the [node.js](http://nodejs.org) and browser.
