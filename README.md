@@ -80,7 +80,7 @@ __Result:__
     query_object == "?query=string&query2=string2"
     query_string == newReference.search
     
-js-filio
+js-fileio
 ========
 
 #js-fileio.js
