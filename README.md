@@ -1,11 +1,15 @@
 #js-fileio.js
 
-File-utils.js is a utility module which provide functions for operating with html file. It can be used both in the [node.js](http://nodejs.org) and browser.
+js-fileio.js is a utility module which provide functions for operating with html file. It can be used both in the [node.js](http://nodejs.org) and browser.
 
 
 HTTP request methods for Node.js and Browser (jQuery). Also, wrapping for file i/o and XML/JSON transformations using node-ObjTree.js
 
-##Documentation
+##Example
+
+[Link]()
+
+##Methods
 
 * [site](#site)
 * [xml.url2json](#xml.url2json)
@@ -90,4 +94,13 @@ __Example:__
     });
     
 __Result:__
+
+##Install
+
+The source code is available for download from [GitHub](https://github.com/rranauro/js-fileio). 
+Besides that, you can also install using Node Package Manager [npm](https://npmjs.org):
+
+    npm install js-fileio
+    
+##License
 
